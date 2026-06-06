@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Odoo & IT: Planta de Pastas</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            odoo: {
+              DEFAULT: '#714B67',
+              50: '#fdf8fc',
+              100: '#faeff7',
+              200: '#f4dded',
+              300: '#e8c0dc',
+              400: '#d597c5',
+              500: '#be6ea7',
+              600: '#a15089',
+              700: '#714B67', // Odoo Plum
+              800: '#5c3e54',
+              900: '#4a3344',
+              950: '#2c1c28',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- React & React-DOM CDNs -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel CDN (Browser JSX Compilation) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc; /* slate-50 */
+    }
+    
+    /* Custom scrollbar for premium touch */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- React App Root Container -->
+  <div id="root"></div>
+
+  <!-- React JSX Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Premium SVGs as inline components for clean self-containment
+    const Icons = {
+      Cpu: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
+        </svg>
+      ),
+      Tv: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+        </svg>
+      ),
+      Tool: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      ),
+      Network: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="16" y="16" width="6" height="6" rx="1" />
+          <rect x="2" y="16" width="6" height="6" rx="1" />
+          <rect x="9" y="2" width="6" height="6" rx="1" />
+          <path d="M12 8v4M5 16v-4h14v4M12 12H5" />
+        </svg>
+      ),
+      Check: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      ),
+      Info: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <circle cx="12" cy="12" r="10" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4M12 8h.01" />
+        </svg>
+      ),
+      ChevronDown: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      ),
+      Dollar: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      Calendar: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      ),
+      TrendingUp: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      ),
+      Server: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+          <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+          <line x1="6" y1="6" x2="6.01" y2="6" />
+          <line x1="6" y1="18" x2="6.01" y2="18" />
+        </svg>
+      ),
+      ArrowRight: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      ),
+      Layers: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+      ),
+      Package: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+          <path d="M12 22V12" />
+        </svg>
+      ),
+      AlertCircle: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      )
+    };
+
+    function App() {
+      // States for interactiveness
+      const [stationCount, setStationCount] = useState(5);
+      const [usdRate, setUsdRate] = useState(1250); // Default cotizacion en Argentina (MEP/Blue)
+      const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
+      const [activeTab, setActiveTab] = useState('hardware');
+      const [openRoadmapSteps, setOpenRoadmapSteps] = useState([0]); // First step open by default
+      const [selectedBomNode, setSelectedBomNode] = useState('root');
+      const [activeTraceStep, setActiveTraceStep] = useState(0);
+
+      // Scroll event for sticky nav shadow
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const handleScroll = () => {
+          setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, []);
+
+      // Calculations for Section 1 (Hardware)
+      const unitHardware = {
+        miniPc: 250,
+        monitor: 280,
+        soporte: 60,
+      };
+      const subtotalPerStation = unitHardware.miniPc + unitHardware.monitor + unitHardware.soporte;
+      const totalStationsCost = subtotalPerStation * stationCount;
+      
+      const infrastructureCosts = {
+        soportesTecho: 150,
+        cableado: 100,
+        router: 150,
+      };
+      const totalInfraCost = infrastructureCosts.soportesTecho + infrastructureCosts.cableado + infrastructureCosts.router;
+      const grandTotalHardware = totalStationsCost + totalInfraCost;
+
+      // Calculations for Section 2 (Licensing)
+      const odooLicenseCost = 150; // USD/month for 10 users
+      const odooHostingCost = 80;  // USD/month
+      const licenseDiscount = billingCycle === 'annual' ? 0.15 : 0; // 15% discount for annual
+      const totalSoftwareMonthly = (odooLicenseCost * (1 - licenseDiscount)) + odooHostingCost;
+      const totalSoftwareYearly = totalSoftwareMonthly * 12;
+
+      const formatCurrency = (valUsd) => {
+        const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(valUsd);
+        const ars = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(valUsd * usdRate);
+        return { usd, ars };
+      };
+
+      const toggleRoadmapStep = (index) => {
+        if (openRoadmapSteps.includes(index)) {
+          setOpenRoadmapSteps(openRoadmapSteps.filter(i => i !== index));
+        } else {
+          setOpenRoadmapSteps([...openRoadmapSteps, index]);
+        }
+      };
+
+      const roadmapSteps = [
+        {
+          num: 1,
+          title: "Paso 1: Relevamiento y Gap Analysis",
+          subtitle: "Mapeo de mermas y procesos reales",
+          duration: "Semanas 1 - 2",
+          badge: "Planificación",
+          badgeColor: "bg-blue-100 text-blue-800",
+          details: "Consiste en la inmersión en la planta de pastas para relevar el flujo real de materiales (harina, sémola, huevo, agua) y detectar los puntos donde se generan mermas (roturas, evaporación, purgas de máquina). Se definirá el alcance funcional del MRP de Odoo y el flujo contable-administrativo contiguo.",
+          keyPoints: ["Documento conceptual As-Is / To-Be.", "Definición del tipo de costo (Promedio vs Estándar).", "Identificación de ubicaciones de inventario físicas en planta."]
+        },
+        {
+          num: 2,
+          title: "Paso 2: Entorno Staging y Carga de Datos",
+          subtitle: "Recetas e insumos normalizados",
+          duration: "Semanas 3 - 5",
+          badge: "Configuración",
+          badgeColor: "bg-amber-100 text-amber-800",
+          details: "Configuración inicial de la base de datos de prueba (Staging) en Odoo.sh. Carga masiva de maestros: clientes, proveedores, artículos (normalizando unidades de medida, ej: kg para harina, un para etiquetas) y la estructura de recetas multinivel (BOM). Pruebas iniciales de consumo de insumos.",
+          keyPoints: ["Migración de catálogos y recetas.", "Pruebas de consumo teórico vs real.", "Definición de usuarios y permisos administrativos."]
+        },
+        {
+          num: 3,
+          title: "Paso 3: Instalación de Hardware y Cableado",
+          subtitle: "Montaje físico industrial en planta",
+          duration: "Semanas 5 - 6",
+          badge: "Infraestructura",
+          badgeColor: "bg-purple-100 text-purple-800",
+          details: "Instalación de las Mini PCs Fanless e industriales en sus gabinetes y soportes VESA de pared en las 5 estaciones. Tendido de cable de red blindado UTP Cat 6 contra la estática de los motores del piso de fabricación y montaje del router TP-Link/Mikrotik con balanceo Dual WAN.",
+          keyPoints: ["Mini PCs sin ventilador (sellado anti-harina).", "Red de baja latencia Gigabit cableada.", "Conectividad redundante de respaldo 4G/Fibra configurada."]
+        },
+        {
+          num: 4,
+          title: "Paso 4: Capacitación Operarios y Key Users",
+          subtitle: "Pruebas piloto en modo kiosco/tablet",
+          duration: "Semanas 7 - 8",
+          badge: "Adopción",
+          badgeColor: "bg-teal-100 text-teal-800",
+          details: "Talleres y simulacros de producción directamente en el piso de planta utilizando las interfaces táctiles instaladas. Los operarios registrarán órdenes de trabajo en el Panel de Pantalla de Odoo en tiempo real (modo quiosco). Los administradores se capacitarán en flujos de compras, facturación y trazabilidad.",
+          keyPoints: ["Simulaciones en el puesto físico de trabajo.", "Feedback de operarios para simplificar vistas.", "Aprobación de roles críticos (Key Users)."]
+        },
+        {
+          num: 5,
+          title: "Paso 5: Go-Live y Soporte",
+          subtitle: "Lanzamiento y Hypercare presencial",
+          duration: "Semana 9 en adelante",
+          badge: "Producción",
+          badgeColor: "bg-emerald-100 text-emerald-800",
+          details: "Cierre del sistema anterior, toma de inventario físico de corte y carga inicial de stock en vivo durante el fin de semana. Salida en vivo (Go-Live) del lunes por la mañana. Acompañamiento presencial intensivo de consultoría técnica (Hypercare) en el piso de fábrica durante la primera semana.",
+          keyPoints: ["Arranque con stock real auditado.", "Soporte in-situ a operarios durante turnos de producción.", "Monitoreo de trazabilidad en los primeros remitos de venta."]
+        }
+      ];
+
+      const traceabilitySteps = [
+        {
+          step: "1. Recepción Harina",
+          badge: "Lote Proveedor",
+          desc: "Ingreso de materia prima a planta. Se registra el lote asignado por el molino harinero (Ej: Molino Cañuelas - Lote H-992). Odoo le genera un código de trazabilidad interno.",
+          morp: "Módulos: Compras e Inventario",
+          icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+        },
+        {
+          step: "2. Amasado y Laminación",
+          badge: "Lote Semielaborado",
+          desc: "Se consume la harina del lote H-992 en la amasadora. Odoo genera automáticamente una orden de producción que crea el lote interno de Masa Laminada (Ej: L-MASA-01).",
+          morp: "Módulo: Fabricación (MRP)",
+          icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+        },
+        {
+          step: "3. Moldeado y Envasado",
+          badge: "Lote Final",
+          desc: "Se consume el semielaborado L-MASA-01 junto con el relleno. Al envasar el producto final, Odoo imprime la etiqueta del envase con el lote final de producto terminado (L-RAV-88) y su fecha de vencimiento.",
+          morp: "Módulo: Fabricación & Código de Barras",
+          icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+        },
+        {
+          step: "4. Despacho al Cliente",
+          badge: "Remito Vinculado",
+          desc: "Se genera el remito de entrega al cliente. Al escanear el lote L-RAV-88 Odoo vincula permanentemente al cliente final con la materia prima y fecha de producción exacta.",
+          morp: "Módulos: Ventas y Despacho",
+          icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+        }
+      ];
+
+      return (
+        <div className="flex-1 flex flex-col">
+          
+          {/* Top Sticky Header */}
+          <header className={`sticky top-0 z-40 bg-white border-b border-slate-200 transition-shadow duration-200 ${scrolled ? 'shadow-md' : 'shadow-none'}`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16">
+                
+                {/* Logo and Badge */}
+                <div className="flex items-center space-x-3">
+                  <div className="bg-odoo text-white w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">O</div>
+                  <div>
+                    <span className="text-xl font-bold tracking-tight text-slate-800">
+                      Odoo<span className="text-odoo font-medium">Pasta</span>
+                    </span>
+                    <span className="hidden sm:inline-block ml-3 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                      Informe Ejecutivo v2026
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop Menu */}
+                <nav className="hidden md:flex space-x-1 lg:space-x-2">
+                  <a
+                    href="#hardware"
+                    onClick={() => setActiveTab('hardware')}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'hardware' ? 'bg-odoo-50 text-odoo-700' : 'text-slate-600 hover:text-odoo-700 hover:bg-slate-50'}`}
+                  >
+                    1. Hardware e Inversión
+                  </a>
+                  <a
+                    href="#licencias"
+                    onClick={() => setActiveTab('licencias')}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'licencias' ? 'bg-odoo-50 text-odoo-700' : 'text-slate-600 hover:text-odoo-700 hover:bg-slate-50'}`}
+                  >
+                    2. Licencias y Server
+                  </a>
+                  <a
+                    href="#arquitectura"
+                    onClick={() => setActiveTab('arquitectura')}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'arquitectura' ? 'bg-odoo-50 text-odoo-700' : 'text-slate-600 hover:text-odoo-700 hover:bg-slate-50'}`}
+                  >
+                    3. Arquitectura y BOM
+                  </a>
+                  <a
+                    href="#roadmap"
+                    onClick={() => setActiveTab('roadmap')}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'roadmap' ? 'bg-odoo-50 text-odoo-700' : 'text-slate-600 hover:text-odoo-700 hover:bg-slate-50'}`}
+                  >
+                    4. Roadmap 2026
+                  </a>
+                </nav>
+
+                {/* Dollar Exchange Rate Controller */}
+                <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-lg p-1.5 shadow-inner">
+                  <span className="text-xs font-semibold text-slate-500 pl-1 uppercase">Cotización:</span>
+                  <div className="flex items-center bg-white border border-slate-200 rounded px-1.5 py-0.5">
+                    <span className="text-xs font-bold text-slate-600 mr-0.5">$</span>
+                    <input 
+                      type="number" 
+                      value={usdRate} 
+                      onChange={(e) => setUsdRate(Math.max(1, parseInt(e.target.value) || 0))}
+                      className="w-16 text-xs font-bold text-slate-800 outline-none text-right"
+                    />
+                    <span className="text-[10px] font-medium text-slate-400 ml-1">ARS</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </header>
+
+          {/* Hero Section */}
+          <section className="bg-gradient-to-br from-slate-900 via-odoo-950 to-slate-900 text-white py-14 px-4 sm:px-6 lg:px-8 text-center relative overflow-hidden shadow-inner">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+            
+            <div className="max-w-4xl mx-auto space-y-5 relative z-10">
+              <span className="inline-block px-3 py-1 bg-odoo-500/20 text-odoo-300 rounded-full text-xs font-bold uppercase tracking-wider border border-odoo-500/30">
+                Planificación Tecnológica e Infraestructura
+              </span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                Implementación ERP Odoo en Planta de Pastas
+              </h1>
+              <p className="text-slate-300 text-base sm:text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
+                Arquitectura de red, Presupuesto de Hardware (Piso de Planta) y Roadmap de Digitalización (2026) diseñado para la Alta Gerencia.
+              </p>
+              
+              <div className="pt-3 flex flex-wrap justify-center gap-4">
+                <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 text-left min-w-[140px] shadow-sm">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Inversión Planta</div>
+                  <div className="text-lg font-bold text-white mt-0.5">{formatCurrency(grandTotalHardware).usd}</div>
+                  <div className="text-[10px] text-slate-400">Total en Hardware</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 text-left min-w-[140px] shadow-sm">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Odoo Enterprise</div>
+                  <div className="text-lg font-bold text-odoo-300 mt-0.5">~{formatCurrency(totalSoftwareMonthly).usd}<span className="text-xs text-slate-400 font-normal">/mes</span></div>
+                  <div className="text-[10px] text-slate-400">Software & Alojamiento</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 text-left min-w-[140px] shadow-sm">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Fases del Proyecto</div>
+                  <div className="text-lg font-bold text-white mt-0.5">2 Etapas</div>
+                  <div className="text-[10px] text-slate-400">9 semanas a Go-Live</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Main Dashboard Space */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+            
+            {/* Section 1: Inversión Hardware e Infraestructura */}
+            <section id="hardware" className="scroll-mt-24 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <span className="p-1.5 bg-odoo-100 text-odoo-700 rounded-lg"><Icons.Cpu /></span>
+                    1. Inversión Hardware e Infraestructura de Planta
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Equipamiento industrial robusto diseñado para soportar polvo de harina en suspensión y ruido eléctrico de motores.
+                  </p>
+                </div>
+
+                {/* Active Workstation Calculator */}
+                <div className="mt-4 md:mt-0 flex items-center gap-3 bg-white p-2 border border-slate-200 rounded-xl shadow-sm">
+                  <span className="text-xs font-semibold text-slate-600 pl-1">Estaciones de trabajo:</span>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={() => setStationCount(Math.max(1, stationCount - 1))}
+                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-700 transition-colors"
+                    >-</button>
+                    <span className="w-8 text-center text-sm font-bold text-slate-800">{stationCount}</span>
+                    <button 
+                      onClick={() => setStationCount(stationCount + 1)}
+                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-700 transition-colors"
+                    >+</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hardware Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Workstation Unitary Cost Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg text-slate-900">Estación Base (Unitario)</h3>
+                      <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">Soporte Operario</span>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg shrink-0 mt-0.5"><Icons.Cpu /></div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">Mini PC Fanless Intel N100</div>
+                          <div className="text-xs text-slate-500">Sin ventilador (evita que el polvo de harina queme la placa).</div>
+                          <div className="text-xs font-bold text-slate-700 mt-1">$250 USD</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg shrink-0 mt-0.5"><Icons.Tv /></div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">Monitor Táctil Industrial 15"</div>
+                          <div className="text-xs text-slate-500">Operación simple con guantes o dedos con harina.</div>
+                          <div className="text-xs font-bold text-slate-700 mt-1">$280 USD</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg shrink-0 mt-0.5"><Icons.Tool /></div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">Soporte VESA de pared</div>
+                          <div className="text-xs text-slate-500">Con ajuste de tensión para fijación segura.</div>
+                          <div className="text-xs font-bold text-slate-700 mt-1">$60 USD</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center bg-slate-50 -mx-6 -mb-6 p-6 rounded-b-2xl">
+                    <span className="text-sm font-bold text-slate-500">Subtotal Estación</span>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-slate-900">{formatCurrency(subtotalPerStation).usd}</div>
+                      <div className="text-xs text-slate-400">{formatCurrency(subtotalPerStation).ars}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Infrastructure Cost Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg text-slate-900">Infraestructura y Red</h3>
+                      <span className="px-2.5 py-1 bg-odoo-50 text-odoo-700 text-xs font-bold rounded-lg border border-odoo-200">Costos Globales</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg shrink-0 mt-0.5"><Icons.Tool /></div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">2 Soportes Estructurales de techo</div>
+                          <div className="text-xs text-slate-500">Caño cuadrado soldado para colgar pantallas en mesas centrales.</div>
+                          <div className="text-xs font-bold text-slate-700 mt-1">$150 USD</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg shrink-0 mt-0.5"><Icons.Network /></div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">Bobina Cable UTP Cat 6 + Fichas</div>
+                          <div className="text-xs text-slate-500">Gigabit blindado contra interferencia electromagnética de motores.</div>
+                          <div className="text-xs font-bold text-slate-700 mt-1">$100 USD</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg shrink-0 mt-0.5"><Icons.Cpu /></div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">Router Dual WAN (TP-Link/Mikrotik)</div>
+                          <div className="text-xs text-slate-500">Conmutación redundante automática (Failover fibra principal y 4G).</div>
+                          <div className="text-xs font-bold text-slate-700 mt-1">$150 USD</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center bg-slate-50 -mx-6 -mb-6 p-6 rounded-b-2xl">
+                    <span className="text-sm font-bold text-slate-500">Subtotal Infraestructura</span>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-slate-900">{formatCurrency(totalInfraCost).usd}</div>
+                      <div className="text-xs text-slate-400">{formatCurrency(totalInfraCost).ars}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Investment Consolidation & Interactive Chart */}
+                <div className="bg-gradient-to-br from-odoo-700 to-odoo-900 rounded-2xl shadow-lg p-6 text-white flex flex-col justify-between relative overflow-hidden">
+                  <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full pointer-events-none"></div>
+                  
+                  <div>
+                    <h3 className="font-bold text-lg text-odoo-100 mb-2">Resumen Total de Inversión</h3>
+                    <p className="text-xs text-odoo-200">Valores proyectados para {stationCount} estaciones y su infraestructura de red.</p>
+                    
+                    <div className="mt-6 space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-odoo-200">Equipamiento ({stationCount} puestos):</span>
+                        <span className="font-semibold">{formatCurrency(totalStationsCost).usd}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-odoo-200">Red e Infraestructura:</span>
+                        <span className="font-semibold">{formatCurrency(totalInfraCost).usd}</span>
+                      </div>
+                      <div className="border-t border-odoo-600 pt-2 flex justify-between items-end">
+                        <span className="text-sm font-bold text-white">Inversión Final</span>
+                        <div className="text-right">
+                          <div className="text-2xl font-black text-white">{formatCurrency(grandTotalHardware).usd}</div>
+                          <div className="text-xs text-odoo-200 font-medium">{formatCurrency(grandTotalHardware).ars}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 bg-black/20 p-4 rounded-xl border border-white/10 space-y-2">
+                    <div className="flex gap-2 items-start text-xs text-odoo-100">
+                      <span className="mt-0.5 shrink-0"><Icons.Info /></span>
+                      <p className="leading-tight">
+                        <strong>Harina e Interferencia:</strong> Las Mini PCs sin ventilación (Fanless) evitan que la harina entre en los componentes y cause incendios o cortocircuitos. El cableado blindado Cat 6 resiste el ruido electromagnético de los motores.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            {/* Section 2: Licenciamiento Odoo Enterprise */}
+            <section id="licencias" className="scroll-mt-24 space-y-6">
+              <div className="border-b border-slate-200 pb-4">
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <span className="p-1.5 bg-odoo-100 text-odoo-700 rounded-lg"><Icons.Dollar /></span>
+                  2. Licenciamiento Odoo Enterprise y Alojamiento
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Costos de licenciamiento en la nube oficial de Odoo, con servidores dedicados para pruebas y base en producción.
+                </p>
+              </div>
+
+              {/* Billing Cycle Selector */}
+              <div className="flex justify-center">
+                <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex">
+                  <button 
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    Facturación Mensual
+                  </button>
+                  <button 
+                    onClick={() => setBillingCycle('annual')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${billingCycle === 'annual' ? 'bg-odoo text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    Facturación Anual
+                    <span className="px-1.5 py-0.5 bg-emerald-500 text-white rounded text-[9px] uppercase tracking-wider">Ahorra 15%</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Pricing Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* Odoo Licenses Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-odoo-100 rounded-full translate-x-8 -translate-y-8 pointer-events-none"></div>
+                  
+                  <div className="mb-6">
+                    <h3 className="font-bold text-lg text-slate-900">Licencias Odoo (10 Usuarios)</h3>
+                    <p className="text-xs text-slate-400 mt-1">Tarifa Enterprise LATAM oficial aproximada.</p>
+                  </div>
+
+                  <div className="my-6">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-slate-900">
+                        {formatCurrency(odooLicenseCost * (billingCycle === 'annual' ? 0.85 : 1)).usd}
+                      </span>
+                      <span className="text-xs text-slate-500">/ mes</span>
+                    </div>
+                    <div className="text-xs text-emerald-600 font-semibold mt-1">
+                      {billingCycle === 'annual' ? 'Facturado anualmente (ahorro incluido)' : 'Sin contratos de permanencia'}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 text-xs text-slate-600 my-6 border-t border-slate-100 pt-4">
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-500"><Icons.Check /></span>
+                      Acceso ilimitado a todos los módulos nativos de Odoo.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-500"><Icons.Check /></span>
+                      Soporte técnico oficial del fabricante.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-500"><Icons.Check /></span>
+                      Versión Enterprise con interfaz web y adaptada a móviles.
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Hosting odoo.sh Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-slate-100 rounded-full translate-x-8 -translate-y-8 pointer-events-none"></div>
+                  
+                  <div className="mb-6">
+                    <h3 className="font-bold text-lg text-slate-900">Alojamiento Cloud Odoo.sh</h3>
+                    <p className="text-xs text-slate-400 mt-1">Plataforma gestionada oficial (PaaS).</p>
+                  </div>
+
+                  <div className="my-6">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-slate-900">{formatCurrency(odooHostingCost).usd}</span>
+                      <span className="text-xs text-slate-500">/ mes</span>
+                    </div>
+                    <div className="text-xs text-slate-500 font-semibold mt-1">Servidor Dedicado de Producción</div>
+                  </div>
+
+                  <ul className="space-y-3 text-xs text-slate-600 my-6 border-t border-slate-100 pt-4">
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-500"><Icons.Check /></span>
+                      Backups automáticos diarios guardados en 3 ubicaciones.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-500"><Icons.Check /></span>
+                      Servidor de Staging (pruebas) integrado para customizaciones.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-500"><Icons.Check /></span>
+                      Acceso total a Base de Datos y control de versiones (Git).
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Software Cost Projections */}
+                <div className="bg-slate-900 text-white rounded-2xl shadow-sm p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-100 mb-2">Proyección Financiera Software</h3>
+                    <p className="text-xs text-slate-400">Total acumulado proyectado según ciclo seleccionado.</p>
+
+                    <div className="mt-6 space-y-4">
+                      <div className="flex justify-between items-center text-xs border-b border-slate-800 pb-2">
+                        <span className="text-slate-400">Costo Mensual Licencias:</span>
+                        <span className="font-semibold">{formatCurrency(odooLicenseCost * (billingCycle === 'annual' ? 0.85 : 1)).usd}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs border-b border-slate-800 pb-2">
+                        <span className="text-slate-400">Costo Mensual Servidor:</span>
+                        <span className="font-semibold">{formatCurrency(odooHostingCost).usd}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm pt-2">
+                        <span className="text-slate-300 font-semibold">Total Mensual Integrado:</span>
+                        <span className="font-bold text-emerald-400">{formatCurrency(totalSoftwareMonthly).usd}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm border-t border-slate-800 pt-3">
+                        <span className="text-slate-300 font-semibold">Costo Proyectado Anual:</span>
+                        <span className="font-extrabold text-white text-lg">{formatCurrency(totalSoftwareYearly).usd}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 text-[10px] text-slate-400 leading-tight">
+                    * Los costos expresados son valores de mercado de referencia. No incluyen honorarios de implementación ni desarrollo a medida de módulos complejos de terceros.
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            {/* Section 3: Arquitectura y Datos Maestros */}
+            <section id="arquitectura" className="scroll-mt-24 space-y-6">
+              <div className="border-b border-slate-200 pb-4">
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <span className="p-1.5 bg-odoo-100 text-odoo-700 rounded-lg"><Icons.Layers /></span>
+                  3. Arquitectura del ERP y Flujo de Datos Maestros
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Módulos involucrados por fases de escalabilidad, recetas de producción (BOM) y trazabilidad ininterrumpida exigida por organismos.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Module Implementation Phases */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                  <h3 className="font-bold text-lg text-slate-900 border-b border-slate-100 pb-3">Fases Funcionales de Módulos Odoo</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="border border-slate-100 bg-slate-50 p-4 rounded-xl relative overflow-hidden">
+                      <div className="absolute right-4 top-4 text-xs font-bold px-2 py-0.5 bg-odoo text-white rounded">Fase 1 (Core Operativo)</div>
+                      <h4 className="font-bold text-sm text-slate-800 mb-2">Base Administrativa y de Manufactura</h4>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {['Inventario', 'Fabricación (MRP)', 'Compras', 'Ventas', 'Facturación'].map((mod, i) => (
+                          <span key={i} className="text-xs bg-white text-slate-700 font-semibold px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">{mod}</span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-3">Establece el control físico del stock, el consumo de harina y facturación electrónica AFIP.</p>
+                    </div>
+
+                    <div className="border border-slate-100 bg-white p-4 rounded-xl relative overflow-hidden">
+                      <div className="absolute right-4 top-4 text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-600 rounded border border-slate-200">Fase 2 (Escalabilidad)</div>
+                      <h4 className="font-bold text-sm text-slate-800 mb-2">Aseguramiento de Calidad y Personas</h4>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {['Calidad (QC)', 'Mantenimiento', 'RRHH'].map((mod, i) => (
+                          <span key={i} className="text-xs bg-slate-50 text-slate-400 font-semibold px-2.5 py-1 rounded-md border border-slate-100">{mod}</span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-3">Control de calidad en lotes alimenticios (pH, humedad), mantenimiento de prensas y administración de personal de planta.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tree BOM Viewer */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-900 border-b border-slate-100 pb-3">Estructura BOM: Raviol de Carne 500g</h3>
+                    <p className="text-xs text-slate-500 mt-1 mb-4">Haz clic en cada componente para ver la descripción de consumo y tratamiento de mermas.</p>
+
+                    {/* BOM Visual Interactive Folder Tree */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-mono text-xs space-y-2.5">
+                      
+                      {/* Root node */}
+                      <div 
+                        onClick={() => setSelectedBomNode('root')}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${selectedBomNode === 'root' ? 'bg-odoo-100 border-l-4 border-odoo text-odoo-900' : 'hover:bg-slate-100 text-slate-800'}`}
+                      >
+                        <span className="text-amber-500">📦</span>
+                        <span className="font-bold">[PF-001] Raviol de Carne 500g</span>
+                        <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.2 rounded font-sans">Producto Final</span>
+                      </div>
+
+                      {/* Level 1 Nodes */}
+                      <div className="pl-6 border-l-2 border-slate-200 space-y-2.5 ml-2.5">
+                        
+                        <div 
+                          onClick={(e) => { e.stopPropagation(); setSelectedBomNode('caja'); }}
+                          className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-all ${selectedBomNode === 'caja' ? 'bg-odoo-100 border-l-2 border-odoo text-odoo-900' : 'hover:bg-slate-100 text-slate-600'}`}
+                        >
+                          <span>📁</span>
+                          <span>Caja de Cartón (1 un)</span>
+                          <span className="text-[9px] bg-blue-100 text-blue-800 px-1 rounded font-sans">Empaque</span>
+                        </div>
+
+                        <div 
+                          onClick={(e) => { e.stopPropagation(); setSelectedBomNode('etiqueta'); }}
+                          className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-all ${selectedBomNode === 'etiqueta' ? 'bg-odoo-100 border-l-2 border-odoo text-odoo-900' : 'hover:bg-slate-100 text-slate-600'}`}
+                        >
+                          <span>🏷️</span>
+                          <span>Etiqueta Lote/Vto (1 un)</span>
+                          <span className="text-[9px] bg-blue-100 text-blue-800 px-1 rounded font-sans">Empaque</span>
+                        </div>
+
+                        <div 
+                          onClick={(e) => { e.stopPropagation(); setSelectedBomNode('granel'); }}
+                          className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-all ${selectedBomNode === 'granel' ? 'bg-odoo-100 border-l-2 border-odoo text-odoo-900 font-bold' : 'hover:bg-slate-100 text-slate-800'}`}
+                        >
+                          <span>📁</span>
+                          <span>[S-010] Raviol a Granel (0.52 kg)</span>
+                          <span className="text-[9px] bg-amber-100 text-amber-800 px-1 rounded font-sans font-semibold">+4% Merma Rotura</span>
+                        </div>
+
+                        {/* Level 2 Nodes (Inside Granel) */}
+                        <div className="pl-6 border-l-2 border-slate-200 space-y-2.5 ml-2.5">
+                          
+                          <div 
+                            onClick={(e) => { e.stopPropagation(); setSelectedBomNode('masa'); }}
+                            className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-all ${selectedBomNode === 'masa' ? 'bg-odoo-100 border-l-2 border-odoo text-odoo-900 font-bold' : 'hover:bg-slate-100 text-slate-800'}`}
+                          >
+                            <span>🥣</span>
+                            <span>[S-005] Masa Laminada (0.3 kg)</span>
+                          </div>
+
+                          {/* Level 3 Nodes (Inside Masa) */}
+                          <div className="pl-6 border-l-2 border-slate-200 space-y-2 ml-2.5">
+                            <div className="text-slate-500">🌾 Harina 0000 (0.25 kg)</div>
+                            <div className="text-slate-500">🥚 Huevo Líquido (0.05 kg)</div>
+                            <div className="text-slate-500 flex items-center gap-1">
+                              💧 Agua (0.02 L) 
+                              <span className="text-[9px] bg-red-100 text-red-700 px-1 rounded font-sans font-semibold">- Evaporación</span>
+                            </div>
+                          </div>
+
+                          <div 
+                            onClick={(e) => { e.stopPropagation(); setSelectedBomNode('relleno'); }}
+                            className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-all ${selectedBomNode === 'relleno' ? 'bg-odoo-100 border-l-2 border-odoo text-odoo-900 font-bold' : 'hover:bg-slate-100 text-slate-800'}`}
+                          >
+                            <span>🥩</span>
+                            <span>[S-008] Relleno de Carne (0.22 kg)</span>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Dynamic BOM Node detail panel */}
+                  <div className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                    {selectedBomNode === 'root' && (
+                      <div>
+                        <span className="font-bold text-slate-800 uppercase block mb-1">Raviol de Carne 500g (Producto Terminado)</span>
+                        <p className="text-slate-500">El producto final que va a la góndola de venta. Requiere un proceso de empaquetado final que consolida los insumos secos (caja y etiqueta) con el semielaborado (ravioles a granel).</p>
+                      </div>
+                    )}
+                    {selectedBomNode === 'caja' && (
+                      <div>
+                        <span className="font-bold text-slate-800 uppercase block mb-1">Caja de Cartón para Pasta Fresca</span>
+                        <p className="text-slate-500">Insumo seco de empaque. Se descuenta de stock 1 unidad por cada caja producida. Almacenado en depósito seco.</p>
+                      </div>
+                    )}
+                    {selectedBomNode === 'etiqueta' && (
+                      <div>
+                        <span className="font-bold text-slate-800 uppercase block mb-1">Etiqueta de Lote y Vencimiento</span>
+                        <p className="text-slate-500">Contiene información crítica regulada (Lote, RNE, RNPA). Se imprime en el piso de fábrica mediante balanzas conectadas por Odoo IoT Box en la fase 1.</p>
+                      </div>
+                    )}
+                    {selectedBomNode === 'granel' && (
+                      <div>
+                        <span className="font-bold text-slate-800 uppercase block mb-1">Raviol a Granel (+4% Merma)</span>
+                        <p className="text-slate-500">Subproducto del moldeado. Se proyecta un 4% de merma teórica por descarte de masa residual de moldes y rotura en cinta de enfriamiento rápido. Esta merma es reingresada o descartada según auditoría de calidad.</p>
+                      </div>
+                    )}
+                    {selectedBomNode === 'masa' && (
+                      <div>
+                        <span className="font-bold text-slate-800 uppercase block mb-1">Masa Laminada Estándar</span>
+                        <p className="text-slate-500">Semielaborado intermedio que requiere amasado y extrusión. Odoo calcula el consumo neto de Harina y Huevo. El agua agregada se evapora parcialmente en el secador, lo que se descuenta en la receta.</p>
+                      </div>
+                    )}
+                    {selectedBomNode === 'relleno' && (
+                      <div>
+                        <span className="font-bold text-slate-800 uppercase block mb-1">Relleno de Carne Cocida</span>
+                        <p className="text-slate-500">Preparado cárnico intermedio bajo cadena de frío obligatoria. Se cocina en marmitas (registrando consumo de gas y horas operario) antes de ser enviado a la tolva inyectora de la raviolera.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Trazabilidad Ininterrumpida Horizontal flow */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <h3 className="font-bold text-lg text-slate-900 border-b border-slate-100 pb-3">
+                  Trazabilidad Ininterrumpida por Lotes (ANMAT / SENASA)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Haz clic en las etapas de la cadena para ver cómo Odoo automatiza el rastreo del lote alimenticio.
+                </p>
+
+                {/* Steps Timeline Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+                  {traceabilitySteps.map((step, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => setActiveTraceStep(idx)}
+                      className={`cursor-pointer p-4 rounded-xl border transition-all ${activeTraceStep === idx ? 'bg-gradient-to-br from-slate-800 to-slate-950 text-white border-slate-950 scale-102 shadow-md' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeTraceStep === idx ? 'bg-odoo text-white' : 'bg-slate-200 text-slate-700'}`}>
+                          {idx + 1}
+                        </span>
+                        <span>{step.icon}</span>
+                      </div>
+                      <h4 className="font-bold text-sm leading-tight">{step.step}</h4>
+                      <span className={`inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold ${activeTraceStep === idx ? 'bg-white/10 text-odoo-300' : 'bg-slate-200 text-slate-600'}`}>
+                        {step.badge}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Selected Traceability Description Detail */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 mt-4 transition-all">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-extrabold text-odoo uppercase">Control de Calidad y Stock</span>
+                    <span className="text-[10px] bg-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded-full">{traceabilitySteps[activeTraceStep].morp}</span>
+                  </div>
+                  <h4 className="font-bold text-sm text-slate-900">{traceabilitySteps[activeTraceStep].step} ({traceabilitySteps[activeTraceStep].badge})</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">{traceabilitySteps[activeTraceStep].desc}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 4: Roadmap de Implementación */}
+            <section id="roadmap" className="scroll-mt-24 space-y-6">
+              <div className="border-b border-slate-200 pb-4">
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <span className="p-1.5 bg-odoo-100 text-odoo-700 rounded-lg"><Icons.Calendar /></span>
+                  4. Hoja de Ruta de Implementación IT & ERP (2026)
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Estrategia secuencial paso a paso recomendada por consultoría para mitigar el riesgo operativo en planta.
+                </p>
+              </div>
+
+              {/* Progress Bar of Roadmap based on opened steps */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                <div className="flex justify-between text-xs text-slate-500 font-semibold">
+                  <span>Hitos de Implementación Analizados:</span>
+                  <span>{openRoadmapSteps.length} de 5 Pasos Examinados</span>
+                </div>
+                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-odoo to-emerald-500 transition-all duration-500" 
+                    style={{ width: `${(openRoadmapSteps.length / 5) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Vertical Accordion Roadmap */}
+              <div className="max-w-4xl mx-auto space-y-3">
+                {roadmapSteps.map((step, idx) => {
+                  const isOpen = openRoadmapSteps.includes(idx);
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`bg-white rounded-xl border transition-all duration-200 ${isOpen ? 'border-odoo shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}
+                    >
+                      {/* Accordion Trigger Header */}
+                      <button 
+                        onClick={() => toggleRoadmapStep(idx)}
+                        className="w-full flex items-center justify-between p-4 sm:p-5 text-left focus:outline-none"
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isOpen ? 'bg-odoo text-white' : 'bg-slate-100 text-slate-600'}`}>
+                            {step.num}
+                          </span>
+                          <div>
+                            <h3 className="font-bold text-sm sm:text-base text-slate-800 leading-snug">{step.title}</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">{step.subtitle} • {step.duration}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className={`hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${step.badgeColor}`}>
+                            {step.badge}
+                          </span>
+                          <div className={isOpen ? 'rotate-180 text-odoo' : 'rotate-0 text-slate-400'}>
+                            <Icons.ChevronDown />
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Accordion Expandable Content */}
+                      {isOpen && (
+                        <div className="px-5 pb-5 pt-1 border-t border-slate-100 text-xs sm:text-sm text-slate-600 space-y-4">
+                          <p className="leading-relaxed text-slate-500">{step.details}</p>
+                          
+                          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Entregables y Metas Clave:</span>
+                            <ul className="space-y-1.5">
+                              {step.keyPoints.map((point, pIdx) => (
+                                <li key={pIdx} className="flex items-start gap-2 text-xs text-slate-600">
+                                  <span className="text-emerald-500 shrink-0 mt-0.5"><Icons.Check /></span>
+                                  <span>{point}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+          </main>
+
+          {/* Executive footer */}
+          <footer className="bg-slate-900 text-slate-400 py-10 mt-16 text-center text-xs border-t border-slate-800">
+            <div className="max-w-7xl mx-auto px-4 space-y-3">
+              <p className="font-medium text-slate-300">Informe Técnico de Digitalización e Infraestructura IT en Planta de Alimentos</p>
+              <p className="max-w-md mx-auto text-slate-500">Este informe constituye una proyección orientativa y técnica. Los costos definitivos de Odoo Enterprise y servidores deben ser cotizados con el partner local en Argentina al momento del cierre contractual.</p>
+              <div className="pt-4 text-slate-600">© 2026 Planta de Pastas Argentina. Todos los derechos reservados.</div>
+            </div>
+          </footer>
+
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
+  </script>
+
+</body>
+</html>

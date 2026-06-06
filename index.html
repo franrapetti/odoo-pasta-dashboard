@@ -398,7 +398,7 @@
                 Implementación ERP Odoo en Planta de Pastas
               </h1>
               <p className="text-slate-300 text-base sm:text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
-                Arquitectura de red, Presupuesto de Hardware (Piso de Planta) y Roadmap de Digitalización (2026) diseñado para la Alta Gerencia.
+                Arquitectura de red, Presupuesto de Hardware (Piso de Planta) y Roadmap de Digitalización (2026).
               </p>
               
               <div className="pt-3 flex flex-wrap justify-center gap-4">
@@ -899,47 +899,7 @@
 
               </div>
 
-              {/* Trazabilidad Ininterrumpida Horizontal flow */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                <h3 className="font-bold text-lg text-slate-900 border-b border-slate-100 pb-3">
-                  Trazabilidad Ininterrumpida por Lotes (ANMAT / SENASA)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Haz clic en las etapas de la cadena para ver cómo Odoo automatiza el rastreo del lote alimenticio.
-                </p>
 
-                {/* Steps Timeline Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
-                  {traceabilitySteps.map((step, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => setActiveTraceStep(idx)}
-                      className={`cursor-pointer p-4 rounded-xl border transition-all ${activeTraceStep === idx ? 'bg-gradient-to-br from-slate-800 to-slate-950 text-white border-slate-950 scale-102 shadow-md' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeTraceStep === idx ? 'bg-odoo text-white' : 'bg-slate-200 text-slate-700'}`}>
-                          {idx + 1}
-                        </span>
-                        <span>{step.icon}</span>
-                      </div>
-                      <h4 className="font-bold text-sm leading-tight">{step.step}</h4>
-                      <span className={`inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold ${activeTraceStep === idx ? 'bg-white/10 text-odoo-300' : 'bg-slate-200 text-slate-600'}`}>
-                        {step.badge}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Selected Traceability Description Detail */}
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 mt-4 transition-all">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-extrabold text-odoo uppercase">Control de Calidad y Stock</span>
-                    <span className="text-[10px] bg-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded-full">{traceabilitySteps[activeTraceStep].morp}</span>
-                  </div>
-                  <h4 className="font-bold text-sm text-slate-900">{traceabilitySteps[activeTraceStep].step} ({traceabilitySteps[activeTraceStep].badge})</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{traceabilitySteps[activeTraceStep].desc}</p>
-                </div>
-              </div>
             </section>
 
             {/* Section 4: Roadmap de Implementación */}
